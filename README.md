@@ -10,3 +10,6 @@
       and probably some other stuff.
       Then we'll run a job once a day that will pull in all the previous day's
       transactions to a single wallet.
+
+
+I need a secure way to store the private keys
