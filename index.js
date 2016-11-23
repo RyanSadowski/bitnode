@@ -2,18 +2,109 @@ var express = require('express');
 var app = express();
 var request = require("request");
 var bitcoin = require('bitcoinjs-lib');
+var crypto = require('crypto');
+var readline = require('readline');
+var events = require('events');
+var mongoose = require('mongoose');
+var btmodel = require('./btmodel.js');
+var eventEmitter = new events.EventEmitter();
 
-GenerateKeys();
-getAddressData("1LybBpJmw1T6fZt4rXkbxxRocRCXXuG75a");
+var rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+Init();
+
+var algorithm = 'aes-256-ctr';
+var welcome = JSON.stringify("15fe2c4cdd8fad04987736da4c6d7db1656a9b");
+                   //welcome to bitnode
+
+
+function Init(){                                    //correct password is `m`
+  hidden("password : ", function(password) {
+      console.log("Your password : " + password);
+      pass = password;
+      Started();
+  });
+}
+
+function Started(){
+  console.log(decrypt(JSON.parse(welcome)));
+  mongoose.Promise = global.Promise;
+  mongoose.connect('mongodb://localhost/bitNode')
+  	.then(() => console.log('connection to db established'))
+  	.catch((err) => console.error(err));
+  GenerateKeys();
+}
+
+function hidden(query, callback) {
+    var stdin = process.openStdin(),
+        i = 0;
+    process.stdin.on("data", function(char) {
+        char = char + "";
+        switch (char) {
+            case "\n":
+            case "\r":
+            case "\u0004":
+                stdin.pause();
+                break;
+            default:
+                process.stdout.write("\033[2K\033[200D"+query+"["+((i%2==1)?"8w=D":"8=wD")+"]");
+                i++;
+                break;
+        }
+    });
+
+    rl.question(query, function(value) {
+        rl.history = rl.history.slice(1);
+        callback(value);
+    });
+}
+
+function encrypt(text) {
+  var cipher = crypto.createCipher(algorithm,pass)
+    var crypted = cipher.update(text,'utf8','hex')
+    crypted += cipher.final('hex');
+    return crypted;
+}
+
+function decrypt(text) {
+  var decipher = crypto.createDecipher(algorithm,pass)
+  var dec = decipher.update(text,'hex','utf8')
+  dec += decipher.final('utf8');
+  return dec;
+}
 
 function GenerateKeys() {
 var keyPair = bitcoin.ECPair.makeRandom();                      // Create a key pair, private & public
-var privateWif = keyPair.toWIF();                               // Saves the private key in WIF
+var privateWif = encrypt(keyPair.toWIF());                      // Saves the private key in WIF
 var pubAddress = keyPair.getAddress();                          // Saves the Address
+console.log("Public address - " + pubAddress);
+console.log("Encrypted key - " + privateWif);
+//console.log(keyPair);
+//
+// btmodel.create(req.body, function (err, post) {
+//   if (err) return next(err);
+//   console.log(post);
+//   res.json(post);
+// });
 
-//console.log(keyPair.toWIF() + " private key in WIF");
-//console.log(keyPair.getAddress() + " public address");
+// TODO: Save to db
+  SaveKeys(privateWif, pubAddress);
+}
 
+function SaveKeys(privateWif, pubAddress){
+  console.log(privateWif + " " + pubAddress )
+  var bt = new btmodel({
+    pubAddress: pubAddress,
+    privateWif: privateWif
+  });
+
+  bt.save(function(err, bt) {
+    if (err) return console.error("error" + err);
+    console.log(bt);
+  });
 }
 
 function getAddressData(address){
@@ -44,15 +135,4 @@ request({                                                       //
         }
     });                                                         //  End Reqest
 }
-/*
-      KK so the idea is that someone will click a button that says
-      "Pay with BTC" or something. That sends a request to GenerateKeys
-      and sends back the address. The keys will be saved in a DB. The
-      user will send the BTC on their own through their wallet and then
-      click a button telling us they've submitted a payment. We will veryify
-      with getAddressData(). Then we'll save the time and the transaction hash
-      and probably some other stuff.
-
-      Then we'll run a job once a day that will pull in all the previous day's
-      transactions to a single wallet.
-*/
+// TODO:
