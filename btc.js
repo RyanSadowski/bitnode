@@ -16,7 +16,8 @@ function GenerateKeys() {
 function SaveKeys(privateWif, pubAddress){                        //  This function saves the keys to DB
   var bt = new btmodel({                                          //  Creates the object
     pubAddress: pubAddress,                                       //  Adds the public address to the model
-    privateWif: privateWif                                        //  Adds the Encrypted WIF to the model
+    privateWif: privateWif,
+    verified: false                                        //  Adds the Encrypted WIF to the model
   });
 
   bt.save(function(err, bt) {                                   // Saves it!

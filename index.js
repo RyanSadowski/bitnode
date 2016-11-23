@@ -48,10 +48,27 @@ function Started(){
   	.then(() => console.log('connection to db established'))
   	.catch((err) => console.error(err));
 
-    router.get('/', function(req, res) {
+  router.get('/', function(req, res) {
       res.json({ BTC_Address: btc.GenerateKeys() });
   });
+
+  router.post('/:pubAddress', function(req, res, next) {
+      var addressFromUrl = req.params.pubAddress;
+      console.log(addressFromUrl);
+
+//19EP8R2HoRMPxgYWBspJX3UXu2apDxZabg
+
+      btmodel.update({pubAddress: addressFromUrl}, {
+            verified: true
+    }, function(err, numberAffected, rawResponse) {
+       //handle it
+    })
+    res.json({ verified: true });
+      });
+
   app.use('/api', router);
+
+
 
 }
 
