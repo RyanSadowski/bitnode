@@ -1,14 +1,16 @@
+var request = require("request");
 var bitcoin = require('bitcoinjs-lib');
 var mongoose = require('mongoose');
 var crypt = require('./crypt.js');
 var btmodel = require('./btmodel.js');
 
 function GenerateKeys() {
-  var keyPair = bitcoin.ECPair.makeRandom();                      // Create a key pair, private & public
+  var keyPair = bitcoin.ECPair.makeRandom();
+  //console.log("REMEBER - " + keyPair.toWIF())                   // Create a key pair, private & public
   var privateWif = crypt.encrypt(keyPair.toWIF());                // the private key in WIF
   var pubAddress = keyPair.getAddress();                          // the Address
-  console.log("Public address - " + pubAddress);                  // for debugging
-  console.log("Encrypted key - " + privateWif);                   // for debugging
+  //console.log("Public address - " + pubAddress);                  // for debugging
+  //console.log("Encrypted key - " + privateWif);                   // for debugging
   SaveKeys(privateWif, pubAddress);                               // Save to Db
   return pubAddress;                                              // Returns the address for the api
 }
@@ -16,8 +18,7 @@ function GenerateKeys() {
 function SaveKeys(privateWif, pubAddress){                        //  This function saves the keys to DB
   var bt = new btmodel({                                          //  Creates the object
     pubAddress: pubAddress,                                       //  Adds the public address to the model
-    privateWif: privateWif,
-    verified: false                                        //  Adds the Encrypted WIF to the model
+    privateWif: privateWif                                        //  Adds the Encrypted WIF to the model
   });
 
   bt.save(function(err, bt) {                                   // Saves it!
@@ -27,6 +28,7 @@ function SaveKeys(privateWif, pubAddress){                        //  This funct
 }
 
 function getAddressData(address){
+  console.log("getting data for " + address)
 var checkAddressURL = "https://blockchain.info/address/" + address + "?format=json";
 
 request({                                                       //
@@ -44,12 +46,13 @@ request({                                                       //
               date.getHours() + ":" +                           //
               date.getMinutes() + ":" +                         //
               date.getSeconds()                                 //
-            );                                                  //
+            );
+          return body;                                            //
           console.log("address has " + body.total_received + " in satoshi");
 
         }else{
           console.log("error: " + error);
-
+          return error;
         }
     });                                                         //  End Reqest
 }

@@ -10,6 +10,7 @@ var mongoose = require('mongoose');
 var btmodel = require('./btmodel.js');
 var crypt = require('./crypt.js');
 var btc = require('./btc.js');
+var collect = require('./collectfunds.js');
 var eventEmitter = new events.EventEmitter();
 var bodyParser = require('body-parser');
 
@@ -48,6 +49,8 @@ function Started(){
   	.then(() => console.log('connection to db established'))
   	.catch((err) => console.error(err));
 
+  collect.Start();
+
   router.get('/', function(req, res) {
       res.json({ BTC_Address: btc.GenerateKeys() });
   });
@@ -59,17 +62,14 @@ function Started(){
 //19EP8R2HoRMPxgYWBspJX3UXu2apDxZabg
 
       btmodel.update({pubAddress: addressFromUrl}, {
-            verified: true
+            verified: 'true'
     }, function(err, numberAffected, rawResponse) {
        //handle it
     })
-    res.json({ verified: true });
+    res.json({ verified: 'true' });
       });
 
   app.use('/api', router);
-
-
-
 }
 
 function hidden(query, callback) {
@@ -95,7 +95,5 @@ function hidden(query, callback) {
         callback(value);
     });
 }
-// TODO:
-
 
 module.exports = app;

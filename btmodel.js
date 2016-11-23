@@ -3,6 +3,10 @@ var bitNodeSchema = new mongoose.Schema({
   updated_at: { type: Date, default: Date.now },
   pubAddress: String,
   privateWif: String,
-  verified: Boolean
+  verified:
+    {
+        type: String,
+        default: 'false'
+    }
 })
 module.exports = mongoose.model('btmodel', bitNodeSchema);
