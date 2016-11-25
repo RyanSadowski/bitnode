@@ -3,7 +3,7 @@ var btmodel = require('./btmodel.js');
 var btc = require('./btc.js');
 var mongoose = require('mongoose');
 var bitcoin = require('bitcoinjs-lib');
-//var tx = new bitcoin.TransactionBuilder()
+var request = require("request");
 
 function Start(){
   var addressData;
@@ -11,43 +11,41 @@ function Start(){
   btmodel.find({verified:"true"},function(err,bitnodes){
         if (err){throw err;}
          else{
-
           for (var i = 0; i < bitnodes.length; i++) {
-            var rawKey = bitnodes[i].privateWif;
-            var pureKey = crypt.decrypt(rawKey);
-            var key = bitcoin.ECPair.fromWIF(pureKey);
-
+            var key = bitcoin.ECPair.fromWIF(crypt.decrypt(bitnodes[i].privateWif)); // get privateWif from DB and decrypt, then put it in the right format
             btc.getAddressData(bitnodes[i].pubAddress, function(err, addressData) {
               if (err) {
                 console.log(err + "error");
               } else {
-               //console.log(addressData.total_received + " body");
                console.log(" prevTx - " + addressData.txs[0].hash);
                console.log(" BTC in address - " + addressData.total_received);
+               console.log(" Sending - " + (addressData.total_received - 10000));
                var tx = new bitcoin.TransactionBuilder();
                tx.addInput(addressData.txs[0].hash, 0);
-               tx.addOutput("1AeVsoKevopE8dLtxjuUcDJ3EEqPQv64V5", addressData.total_received - 500);
+               tx.addOutput("1AeVsoKevopE8dLtxjuUcDJ3EEqPQv64V5", (addressData.total_received - 10000));
                tx.sign(0, key);
                console.log(tx.build().toHex());
 
+               request.post(
+                 'http://btc.blockr.io/api/v1/tx/push',
+                 { json: { "hex" : tx.build().toHex() } },
+                 function (error, response, body) {
+                   if (!error && response.statusCode == 200) {
+                     console.log("transaction successful !" );
+                   }else{
+                     console.log(error + " error" + response);
+                   }
+                 }
+               );
 
-            }
-          });    //omg callbacks suck
 
-            //console.log(addressData + "addressData");                                         //This isnt loading in time.
-            //console.log(" prevTx - " + addressData.txs[0].hash);
-            //console.log(" BTC in address - " + addressData.total_received);
-            //var tx = new bitcoin.TransactionBuilder();
-            //tx.addInput("d18e7106e5492baf8f3929d2d573d27d89277f3825d3836aa86ea1d843b5158b", 1);
-            //tx.addOutput("12idKQBikRgRuZEbtxXQ4WFYB7Wa3hZzhT", 149000);
-            //tx.sign(0, key);
-            //console.log(tx.build().toHex());
+               // looks like you can post a hex transaction here http://btc.blockr.io/api/v1/tx/push
+               // {"hex" : tx.build().toHex()}
           }
-          console.log("stopping collection");
-        }
-    });
-
-
+        });
+      }
+    }
+  });
 }
 
 module.exports.Start = Start;

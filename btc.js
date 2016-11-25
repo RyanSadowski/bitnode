@@ -37,10 +37,10 @@ var checkAddressURL = "https://blockchain.info/address/" + address + "?format=js
 request({                                                       //
     url: checkAddressURL,                                       //
     json: true                                                  //  This gets the JSON from the url
-}, function (error, response, body){                           //
+}, function (error, response, body){                            //
     if (!error && response.statusCode === 200) {                //
-      //console.log(body.txs[0].hash + " transaction hash");      //  There should never be a previous transaction so this should work
-      //console.log(body.txs[0].time + " transaction time");      //  I guess the user could send twice
+      //console.log(body.txs[0].hash + " transaction hash");    //  There should never be a previous transaction so this should work
+      //console.log(body.txs[0].time + " transaction time");    //  I guess the user could send twice
       var date = new Date(parseFloat(body.txs[0].time));        //
             console.log( "txn at " +                            //
               (date.getMonth() + 1) + "/" +                     //
