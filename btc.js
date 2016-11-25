@@ -27,17 +27,20 @@ function SaveKeys(privateWif, pubAddress){                        //  This funct
   });
 }
 
-function getAddressData(address){
+function getAddressData(address, callback){
+  if(callback){
+    console.log("called back");
+  }
   console.log("getting data for " + address)
 var checkAddressURL = "https://blockchain.info/address/" + address + "?format=json";
 
 request({                                                       //
     url: checkAddressURL,                                       //
     json: true                                                  //  This gets the JSON from the url
-}, function (error, response, body) {                           //
+}, function (error, response, body){                           //
     if (!error && response.statusCode === 200) {                //
-      console.log(body.txs[0].hash + " transaction hash");      //  There should never be a previous transaction so this should work
-      console.log(body.txs[0].time + " transaction time");      //  I guess the user could send twice
+      //console.log(body.txs[0].hash + " transaction hash");      //  There should never be a previous transaction so this should work
+      //console.log(body.txs[0].time + " transaction time");      //  I guess the user could send twice
       var date = new Date(parseFloat(body.txs[0].time));        //
             console.log( "txn at " +                            //
               (date.getMonth() + 1) + "/" +                     //
@@ -47,14 +50,15 @@ request({                                                       //
               date.getMinutes() + ":" +                         //
               date.getSeconds()                                 //
             );
-          return body;                                            //
-          console.log("address has " + body.total_received + " in satoshi");
-
+          //console.log("address has " + body.total_received + " in satoshi");
+          callback(null, body);
+          return body;
         }else{
           console.log("error: " + error);
-          return error;
+          return callback(error || {statusCode: response.statusCode});
         }
-    });                                                         //  End Reqest
+    });
+                                                              //  End Reqest
 }
 
 module.exports.GenerateKeys = GenerateKeys;
