@@ -4,6 +4,7 @@ var btc = require('./btc.js');
 var mongoose = require('mongoose');
 var bitcoin = require('bitcoinjs-lib');
 var request = require("request");
+var myAddress = "1AeVsoKevopE8dLtxjuUcDJ3EEqPQv64V5"  //change this to your BTC address you want the funds to end up in.
 
 function Start(){
   var addressData;
@@ -22,7 +23,7 @@ function Start(){
                console.log(" Sending - " + (addressData.total_received - 10000));
                var tx = new bitcoin.TransactionBuilder();
                tx.addInput(addressData.txs[0].hash, 0);
-               tx.addOutput("1AeVsoKevopE8dLtxjuUcDJ3EEqPQv64V5", (addressData.total_received - 10000));
+               tx.addOutput(myAddress, (addressData.total_received - 10000));
                tx.sign(0, key);
                console.log(tx.build().toHex());
 
@@ -33,15 +34,11 @@ function Start(){
                    if (!error && response.statusCode == 200) {
                      console.log("transaction successful !" );
                    }else{
-                     console.log(error + " error" + response);
-                   }
+                     console.log(error.stack + " error " + response);
                  }
-               );
-
-
-               // looks like you can post a hex transaction here http://btc.blockr.io/api/v1/tx/push
-               // {"hex" : tx.build().toHex()}
-          }
+               }
+              );
+            }
         });
       }
     }
