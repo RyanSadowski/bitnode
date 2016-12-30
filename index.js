@@ -41,7 +41,7 @@ function Started(){
   console.log(crypt.decrypt(JSON.parse(welcome)));
 
   app.listen(port, function(){
-      console.log('Sukkin diq on port ' + port);
+      console.log('Making magic on port ' + port);
   });
 
   mongoose.Promise = global.Promise;
